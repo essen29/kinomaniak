@@ -21,6 +21,8 @@
 
 using namespace std;
 
+
+
 vector<vector<string>> WczytajDane(string nazwa_pliku)
 {
 	vector<vector<string>> content;
@@ -54,7 +56,48 @@ vector<vector<string>> WczytajDane(string nazwa_pliku)
 }
 
 void wyslijMaila(string odbiorca, string tresc)
+
+/*Zostala przeprowadzona refraktoryzacja
+Poczatkowa  wersjafunkcji wyslijMaila zostala poprawiona
+po konsultacji z moderatorem. Wprowadzono poprawki ktore usprawnily dzialanie funkcji.
+
+Zakomentowany fragment kodu ilustruje wersje przed poprawka.
+
+*/
 {
+	/*::CoInitialize(NULL);
+
+	IMailPtr oSmtp = NULL;
+	oSmtp.CreateInstance(__uuidof(EASendMailObjLib::Mail));
+	oSmtp->LicenseCode = _T("TryIt");
+
+	oSmtp->FromAddr = _T("projektkinomaniak@gmail.com");
+
+	oSmtp->AddRecipientEx(odbiorca.c_str(), 0);
+
+	oSmtp->Subject = _T("Bilety");
+
+	oSmtp->BodyText = tresc.c_str();
+
+	oSmtp->ServerAddr = _T("smtp.gmail.com");
+
+	oSmtp->UserName = _T("projektkinomaniak@gmail.com");
+	oSmtp->Password = _T("kinomaniakio1");
+
+	oSmtp->ConnectType = 4;
+
+	oSmtp->ServerPort = 465;
+	oSmtp->ConnectType = 1;
+
+	if (oSmtp->SendMail() == 0)
+	{
+
+	}
+	else
+	{
+		cout << "Nie udalo sie wyslac maila, mail prawdopodobnie nie istnieje" << endl;
+	}*/
+
 	CkMailMan mailman;
 
 	mailman.put_SmtpHost("smtp.gmail.com");
@@ -439,7 +482,8 @@ private:
 	int numerMiejsca;
 
 public:
-	void WyswietlRepertuar(string login) {
+	void WyswietlRepertuar(string login) 
+	{
 		vector<vector<string>> content = WczytajDane("repertuar.csv");
 		vector<vector<string>> filmy = WczytajDane("baza_filmow.csv");
 		string nazwa = "koszyk_" + login + ".csv";
@@ -1513,6 +1557,264 @@ public:
 	}
 };
 
+int test_Utworz_Uzytkownika()
+{
+	string login = "testlogin", haslo = "testhaslo", imie = "testimie", nazwisko = "testnazwisko", mail = "test@test.test";
+	Logowanie test;
+
+	cout << "Dodawanie 100 uzytkownikow" << endl;
+	for (int i = 0; i < 100; i++)
+	{
+		test.UtworzenieKonta(login + to_string(i), haslo + to_string(i), imie + to_string(i), nazwisko + to_string(i), mail + to_string(i));
+	}
+	
+	return 0;
+}
+
+void test_Zakup_Biletu()
+{
+	vector<vector<string>> content = WczytajDane("repertuar.csv");
+	vector<vector<string>> filmy = WczytajDane("baza_filmow.csv");
+	string nazwa = "koszyk_test123.csv";
+	int nazwaFilmu;
+	vector<vector<string>> koszyk = WczytajDane(nazwa);
+	vector<string> row;
+	string line, word;
+	int licznik = 1;
+	float oceny = 0, ilosc_ocen = 0;
+	int wolne = 0, zajete = 0;
+	int numerSali = 2;
+	int numerRzedu = 3;
+	int numerMiejsca = 4;
+	string wybor = "1";
+	int ilosc = 1;
+	float kwota;
+
+	for (int i = 0; i < content.size(); i = i + 6)
+	{
+		system("cls");
+		wolne = 0;
+		zajete = 0;
+		oceny = 0;
+		ilosc_ocen = 0;
+		string nazwaFilmu;
+		nazwaFilmu = content[i][0];
+		numerSali = stoi(content[i + 3][0]);
+		kwota = stof(content[i + 4][0]);
+		cout << licznik << "." << nazwaFilmu << endl;
+		cout << "Data: " << content[i + 1][0] << endl;
+		cout << "Godzina seansu: " << content[i + 2][0] << endl;
+		cout << "Sala: " << numerSali << endl;
+		cout << "Cena: " << kwota << " za miejsce" << endl;
+		for (int j = 0; j < filmy.size(); j = j + 3)
+		{
+			if (content[i][0] == filmy[j][0])
+			{
+				for (int k = 2; k < filmy[j + 1].size(); k = k + 2)
+				{
+					oceny = oceny + stoi(filmy[j + 1][k]);
+					ilosc_ocen++;
+				}
+				break;
+			}
+		}
+		if (ilosc_ocen == 0)
+		{
+			cout << "Srednia ocen uzytkownikow: Nikt jeszcze nie ocenil tego filmu" << endl << endl;
+		}
+		else
+		{
+			oceny = oceny / ilosc_ocen;
+			cout << "Srednia ocen uzytkownikow: " << oceny << "/10" << endl << endl;
+		}
+		cout << "Miejsca (0 - wolne, 1 - zajete):" << endl;
+		for (numerRzedu = 0; numerRzedu < numerSali + 5; numerRzedu++)
+		{
+			for (int y = 0; y < numerSali + 5; y++)
+			{
+				numerMiejsca = y + ((numerSali + 5) * numerRzedu);
+				cout << content[i + 5][numerMiejsca];
+				if (content[i + 5][numerMiejsca] == "1")
+				{
+					zajete++;
+				}
+				else
+				{
+					wolne++;
+				}
+			}
+			cout << endl;
+		}
+		cout << "\nLiczba miejsc zajetych: " << zajete << endl << "Liczba miejsc wolnych: " << wolne << endl << endl;
+		cout << "Komentarze: " << endl;
+		int k;
+		for (int j = 0; j < filmy.size(); j = j + 3)
+		{
+			if (content[i][0] == filmy[j][0])
+			{
+				for (k = 2; k < filmy[j + 2].size(); k = k + 2)
+				{
+					cout << filmy[j + 2][k - 1] << ":" << endl; // autor wpisu
+					cout << filmy[j + 2][k] << endl << endl; //komentarz
+				}
+				if (k == 2)
+				{
+					cout << "Nie zamieszczono jeszcze zadnych komentarzy do tego filmu" << endl << endl;
+				}
+				break;
+			}
+		}
+		licznik++;
+		system("pause");
+	}
+	system("cls");
+	cout << "Wybierz numer od 1 do " << licznik - 1 << " aby wybrac film lub 0 jesli chcesz anulowac" << endl << endl;
+
+	if (wybor == "0" || wybor == "")
+	{
+		system("cls");
+		cout << "Powrocono do glownego menu" << endl;
+		return;
+	}
+
+	bool czy_wprzedziale = false;
+	for (int i = 0; i < licznik; i++)
+	{
+		if (wybor == to_string(i))
+		{
+			czy_wprzedziale = true;
+		}
+	}
+
+	if (czy_wprzedziale)
+	{
+		for (int i = 1; i < licznik; i++)
+		{
+			if (stoi(wybor) == i)
+			{
+				zajete = 0;
+				wolne = 0;
+				for (int numerRzedu = 0; numerRzedu < stoi(content[3 + ((i - 1) * 6)][0]) + 5; numerRzedu++)
+				{
+					for (int numerMiejsca = 0; numerMiejsca < stoi(content[3 + ((i - 1) * 6)][0]) + 5; numerMiejsca++)
+					{
+						if (content[5 + (i - 1) * 6][(stoi(content[3 + ((i - 1) * 6)][0]) + 5) * numerRzedu + numerMiejsca] == "1")
+						{
+							zajete++;
+						}
+						else
+						{
+							wolne++;
+						}
+					}
+				}
+				system("cls");
+				cout << "Liczba miejsc zajetych dla wybranego filmu: " << zajete << endl << "Liczba miejsc wolnych: " << wolne << endl;
+				if (wolne == 0)
+				{
+					cout << "Nie ma wolnych miejsc na seans" << endl;
+				}
+				else
+				{
+					cout << "\nIle biletow chcesz kupic?\nMiejsca zostana od razu zarezerwowane jednak musisz dokonczyc transakcje w koszyku" << endl;
+					if (ilosc > 0)
+					{
+						if (ilosc > wolne)
+						{
+							cout << "Wybrano zbyt duzo biletow na zbyt mala ilosc wolnych miejsc" << endl;
+						}
+						else
+						{
+							for (int j = 0; j < ilosc; j++)
+							{
+								bool x = false;
+								while (x == false)
+								{
+									cout << "\nBilet nr " << j + 1 << endl;
+									cout << "Podaj numer rzedu (od 0 do " << stoi(content[3 + ((i - 1) * 6)][0]) + 4 << " wlacznie): ";
+									cout << "Podaj numer miejsca (od 0 do " << stoi(content[3 + ((i - 1) * 6)][0]) + 4 << " wlacznie): ";
+
+									if (content[5 + (i - 1) * 6][(stoi(content[3 + ((i - 1) * 6)][0]) + 5) * numerRzedu + numerMiejsca] == "0")
+									{
+										x = true;
+										content[5 + (i - 1) * 6][(stoi(content[3 + ((i - 1) * 6)][0]) + 5) * numerRzedu + numerMiejsca] = "1";
+									}
+									else
+									{
+										cout << "\nTo miejsce jest zajete, sprobuj inne" << endl;
+										return;
+									}
+
+								}
+							}
+
+							fstream filezapisrepertuar("repertuar.csv", ios::out);
+							for (int p = 0; p < content.size(); p = p + 6)
+							{
+								filezapisrepertuar << content[p][0] << "\n";
+								filezapisrepertuar << content[p + 1][0] << "\n";
+								filezapisrepertuar << content[p + 2][0] << "\n";
+								filezapisrepertuar << content[p + 3][0] << "\n";
+								filezapisrepertuar << content[p + 4][0] << "\n";
+								for (int o = 0; o < content[p + 5].size(); ++o)
+								{
+									filezapisrepertuar << content[p + 5][o] << ",";
+								}
+								filezapisrepertuar << "\n";
+							}
+							filezapisrepertuar.close();
+
+							string nazwawkoszyku = content[(i - 1) * 6][0] + "-" + content[1 + (i - 1) * 6][0] + "-" + content[2 + (i - 1) * 6][0];
+
+							for (int t = 0; t < koszyk.size(); t++)
+							{
+								if (nazwawkoszyku == koszyk[t][0])
+								{
+									koszyk[t][1] = to_string(stoi(koszyk[t][1]) + ilosc);
+									kwota = stof(content[4 + (i - 1) * 6][0]) * ilosc + stof(koszyk[t][2]);
+									kwota = round(kwota * 100) / 100.0;
+
+									fstream filezapis(nazwa, ios::out);
+									for (int y = 0; y < koszyk.size(); y++)
+									{
+										if (t == y)
+										{
+											filezapis << koszyk[y][0] << "," << koszyk[y][1] << "," << kwota << "\n";
+										}
+										else
+										{
+											filezapis << koszyk[y][0] << "," << koszyk[y][1] << "," << koszyk[y][2] << "\n";
+										}
+									}
+									filezapis.close();
+									system("cls");
+									cout << "Pomyslnie zarezerwowano bilety" << endl;
+									system("cls");
+
+									return;
+								}
+							}
+
+							fstream filezapis(nazwa, ios::out);
+							for (int q = 0; q < koszyk.size(); ++q)
+							{
+								filezapis << koszyk[q][0] << "," << koszyk[q][1] << "," << koszyk[q][2] << "\n";
+							}
+							filezapis << nazwawkoszyku << "," << ilosc << "," << stof(content[4 + (i - 1) * 6][0]) * ilosc << "\n";
+							filezapis.close();
+
+
+							cout << "\nPomyslnie zarezerwowano bilety" << endl;
+						}
+
+					}
+				}
+
+			}
+		}
+	}
+}
+
 
 int main()
 {
@@ -1522,6 +1824,10 @@ int main()
 	string login, haslo, zaszyfrowanehaslo;
 	bool poprawne = false;
 	string wybor;
+
+	//test_Utworz_Uzytkownika();
+	/*test_Zakup_Biletu();
+	return 0;*/
 
 	while (true)
 	{
